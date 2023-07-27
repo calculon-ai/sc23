@@ -28,6 +28,8 @@ import fig3fig4
 modules['fig3fig4'] = fig3fig4.Fig3Fig4()
 import fig5
 modules['fig5'] = fig5.Fig5()
+import fig6fig8fig9
+modules['fig6fig8fig9'] = fig6fig8fig9.Fig6Fig8Fig9()
 
 
 def main(args):
