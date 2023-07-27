@@ -8,7 +8,7 @@ cd $BASE
 which python3
 which pip3
 
-for pkg in numpy matplotlib taskrun tol-colors; do
+for pkg in matplotlib numpy pandas taskrun tol-colors; do
     if ! pip3 list 2>&1 | grep ${pkg}; then
 	echo "pip installing ${pkg}"
 	pip3 install ${pkg}
@@ -17,16 +17,17 @@ for pkg in numpy matplotlib taskrun tol-colors; do
     fi
 done
 
-if ! test -d calculon; then
+CALC_DIR=calc_proj
+if ! test -d ${CALC_DIR}; then
     echo "Cloning calculon"
-    git clone git@github.com:calculon-ai/calculon calc_proj
+    git clone git@github.com:calculon-ai/calculon ${CALC_DIR}
 else
     echo "Calculon already cloned :)"
 fi
 
 COMMIT=84dea66
 echo "Checking out commit ${COMMIT}"
-cd calc_proj
+cd ${CALC_DIR}
 git checkout ${COMMIT}
 cd ${BASE}
 
