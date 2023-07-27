@@ -184,7 +184,8 @@ class Executor():
       with open(log, 'w') as fd:
         print(a + b + c, file=fd)
     self.createFunctionTask('tfunc', tfunc, 3, 4, 5)
-    for task_type in ['SingleExecution', 'OptimalExecution', 'MiscProcess']:
+    for task_type in ['SingleExecution', 'OptimalExecution', 'AllExecutions',
+                      'MiscProcess']:
       _, log = tempfile.mkstemp(suffix='.log')
       os.remove(log)
       name = f'{task_type}Test'
