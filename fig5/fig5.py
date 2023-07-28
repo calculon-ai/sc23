@@ -13,7 +13,7 @@ def main(args):
   dfa = pandas.read_csv(args.input)
   print(f'Raw data has {dfa.shape[0]} rows')
 
-  df = dfa[dfa['tensor_par_overlap'] != 'ring']
+  df = dfa #[dfa['tensor_par_overlap'] != 'ring']
   print(f'Filter data has {df.shape[0]} rows')
   num = df.shape[0]
 
