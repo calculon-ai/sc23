@@ -30,6 +30,8 @@ import fig5
 modules['fig5'] = fig5.Fig5()
 import fig6fig8fig9
 modules['fig6fig8fig9'] = fig6fig8fig9.Fig6Fig8Fig9()
+import tab3
+modules['tab3'] = tab3.Tab3()
 
 
 def main(args):
