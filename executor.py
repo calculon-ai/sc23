@@ -21,7 +21,7 @@ class Executor():
         self._singleExecutionSlots = 1
         self._parallelExecutionSlots = psutil.cpu_count(logical=False)
         self._miscTaskSlots = 1
-      elif self.mode == 'local_8':
+      elif self._mode == 'local_8':
         self._parallelExecutionCores = 8
         self._singleExecutionSlots = 1
         self._parallelExecutionSlots = 8
