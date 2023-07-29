@@ -35,7 +35,7 @@ class Executor():
         failure_mode = failure_mode)
     elif self._mode == 'nvlsf':
       self._maxLsfSlotsPerUser = 600
-      self._lsfParallelExecutionCores = 8
+      self._lsfParallelExecutionCores = 4
       self._tm = taskrun.standard_task_manager(
         track_cpus = True,
         max_cpus = self._maxLsfSlotsPerUser,
