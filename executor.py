@@ -129,6 +129,7 @@ class Executor():
         '-P research_networking_misc '
         '-m rel75 '
         '-env all '
+        '-app affinity '
         f'-q o_cpu_{gb}G_{hr}H '
         '-K '
         f'-J {name} ')
