@@ -17,7 +17,6 @@ def main(args):
     (dfa['tensor_par_net'] == 0) &
     ((dfa['pipeline_par_net'] == 1) | (dfa['pipeline_par'] == 1)) &
     ((dfa['data_par_net'] == 1) | (dfa['data_par'] == 1)) &
-    (dfa['data_par_net'] == 1) &
     (dfa['fused_activation'] == False) &
     (dfa['attention_type'] == 'multihead') &
     (dfa['seq_par_ag_redo'] == False) &
