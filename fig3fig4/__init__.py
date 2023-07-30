@@ -38,28 +38,15 @@ class Fig3Fig4():
     run_task.add_condition(taskrun.FileModificationCondition(
       [a100_big, megatron_1T], [run_output]))
 
-    # Creates the plotting task for fig3
-    plotter = os.path.join(H, 'fig3.py')
-    assert os.path.exists(plotter)
-    fig3_file = os.path.join(self.output, 'fig3.png')
-    fig3_name = f'{run_name}_fig3'
-    fig3_cmd = f'{plotter} {run_output} {fig3_file}'
-    fig3_log = os.path.join(self.output, f'{fig3_name}.log')
-    fig3_task = executor.createTask('MiscProcess', fig3_name, fig3_cmd,
-                                    fig3_log)
-    fig3_task.add_condition(taskrun.FileModificationCondition(
-      [run_output], [fig3_file]))
-    fig3_task.add_dependency(run_task)
-
-    # Creates the plotting task for fig4
-    plotter = os.path.join(H, 'fig4.py')
-    assert os.path.exists(plotter)
-    fig4_file = os.path.join(self.output, 'fig4.png')
-    fig4_name = f'{run_name}_fig4'
-    fig4_cmd = f'{plotter} {run_output} {fig4_file}'
-    fig4_log = os.path.join(self.output, f'{fig4_name}.log')
-    fig4_task = executor.createTask('MiscProcess', fig4_name, fig4_cmd,
-                                    fig4_log)
-    fig4_task.add_condition(taskrun.FileModificationCondition(
-      [run_output], [fig4_file]))
-    fig4_task.add_dependency(run_task)
+    # Creates the plotting tasks
+    for fig in [3, 4]:
+      plotter = os.path.join(H, f'fig{fig}.py')
+      assert os.path.exists(plotter)
+      fig_file = os.path.join(self.output, f'fig{fig}.png')
+      fig_name = f'{run_name}_fig{fig}'
+      fig_cmd = f'{plotter} {run_output} {fig_file}'
+      fig_log = os.path.join(self.output, f'{fig_name}.log')
+      fig_task = executor.createTask('MiscProcess', fig_name, fig_cmd, fig_log)
+      fig_task.add_condition(taskrun.FileModificationCondition(
+        [run_output], [fig_file]))
+      fig_task.add_dependency(run_task)
