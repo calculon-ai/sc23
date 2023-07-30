@@ -37,6 +37,7 @@ class Fig3Fig4():
       'both', run_log)
     run_task.add_condition(taskrun.FileModificationCondition(
       [a100_big, megatron_1T], [run_output]))
+    run_task.add_dependency(sys_task)
 
     # Creates the plotting tasks
     for fig in [3, 4]:
