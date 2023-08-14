@@ -28,7 +28,7 @@ def main(args):
                fontsize=14)
 
   ax[0].hist(srs, bins=10, edgecolor='black')
-  ax[0].set_xlabel('Sample Rate')
+  ax[0].set_xlabel('Sample rate')
   ax[0].set_ylabel('Occurances')
   ax[0].set_title('(a) Sample rate distribution')
 
@@ -38,7 +38,7 @@ def main(args):
   cdf = np.arange(1, n+1) / n
 
   ax[1].plot(top_srs, cdf, marker='.', linestyle='none')
-  ax[1].set_xlabel('Sample Rate')
+  ax[1].set_xlabel('Sample rate')
   ax[1].set_ylabel('CDF')
   ax[1].set_title(f'(b) Top-{top_n} sample rate CDF')
 
