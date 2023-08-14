@@ -7,5 +7,8 @@ if [ "$#" -ne 2 ]; then
     return -1
 fi
 
-cat ${1} | tail -n 9 | column -t -s, > ${2}
+echo "Input: ${1}"
+echo "Output: ${2}"
+
+cat ${1} | head -n 35 | tail -n 8 | column -t -s, > ${2}
 
