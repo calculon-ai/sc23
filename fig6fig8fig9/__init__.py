@@ -16,7 +16,7 @@ class Fig6Fig8Fig9():
 
     # Defines the multi-dimensional sweep parameters
     nvls = [8]
-    sizes = sorted(list(set(list(range(8, 6*1024+1, 8)))))
+    sizes = sorted(list(set(list(range(8, 8*1024+1, 8)))))
     mem2s = [512]
     g2cs = [0, 100]
     apps = [
@@ -86,17 +86,18 @@ class Fig6Fig8Fig9():
               run_tasks.append(run_task)
               run_outputs.append(run_output)
 
-    for fig in [6, 8, 9]:
-      # Creates the plotting task for the figure
-      plotter = os.path.join(H, f'fig{fig}.py')
-      assert os.path.exists(plotter)
-      fig_file = os.path.join(self.output, f'fig{fig}.png')
-      fig_name = f'{run_name}_fig{fig}'
-      fig_cmd = f'{plotter} {run_output} {fig_file}'
-      fig_log = os.path.join(self.output, f'{fig_name}.log')
-      fig_task = executor.createTask('MiscProcess', fig_name, fig_cmd,
-                                     fig_log)
-      fig_task.add_condition(taskrun.FileModificationCondition(
-        run_outputs, [fig_file]))
-      for run_task in run_tasks:
-        fig_task.add_dependency(run_task)
+    # Creates the plotting task for the figure
+    plotter = os.path.join(H, 'figs.py')
+    assert os.path.exists(plotter)
+    fig_files = []
+    fig_files = [os.path.join(self.output, f'fig{fig}.png')
+                 for fig in [6, 8, 9]]
+    fig_name = f'{run_name}_figs'
+    fig_cmd = f'{plotter} {self.output}'
+    fig_log = os.path.join(self.output, f'{fig_name}.log')
+    fig_task = executor.createTask('MiscProcess', fig_name, fig_cmd,
+                                   fig_log)
+    fig_task.add_condition(taskrun.FileModificationCondition(
+      run_outputs, fig_files))
+    for run_task in run_tasks:
+      fig_task.add_dependency(run_task)
