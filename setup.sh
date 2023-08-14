@@ -20,7 +20,7 @@ done
 CALC_DIR=calc_proj
 if ! test -d ${CALC_DIR}; then
     echo "Cloning calculon"
-    git clone git@github.com:calculon-ai/calculon ${CALC_DIR}
+    git clone https://github.com/calculon-ai/calculon.git ${CALC_DIR}
 else
     echo "Calculon already cloned :)"
 fi
