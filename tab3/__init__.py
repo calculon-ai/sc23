@@ -103,4 +103,16 @@ class Tab3():
               run_tasks.append(run_task)
               run_outputs.append(run_output)
 
-    # Need to create table from data
+    # Runs the table creator
+    parser = os.path.join(H, 'parse.py')
+    assert os.path.exists(parser)
+    tab3_file = os.path.join(self.output, 'tab3.csv')
+    tab3_name = 'tab3-creation'
+    tab3_cmd = f'{parser} {self.output} {tab3_file}'
+    tab3_log = os.path.join(self.output, f'{tab3_name}.log')
+    tab3_task = executor.createTask('MiscProcess', tab3_name, tab3_cmd,
+                                    tab3_log)
+    tab3_task.add_condition(taskrun.FileModificationCondition(
+      run_outputs, [tab3_file]))
+    for run_task in run_tasks:
+      tab3_task.add_dependency(run_task)
