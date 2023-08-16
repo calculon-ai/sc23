@@ -112,7 +112,7 @@ class Executor():
       hr = 16
       slots = self._parallelExecutionSlots
     elif task_type == 'MiscProcess':
-      gb = 16
+      gb = 32
       hr = 1
       slots = self._miscTaskSlots
     else:
