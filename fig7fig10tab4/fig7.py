@@ -17,17 +17,23 @@ def main(args):
   # A100
   df = pandas.read_csv(args.a100_input)
   print(f'Full data has {df.shape[0]} rows')
+  df = df[
+    (df['tensor_par_net'] == 0) &
+    ((df['pipeline_par_net'] == 1) | (df['pipeline_par'] == 1)) &
+    ((df['data_par_net'] == 1) | (df['data_par'] == 1))
+  ]
+  print(f'Filtered data has {df.shape[0]} rows')
 
   # Sets up the plot structure
   fig, ax = plt.subplots(2, 2, figsize=(7.5, 7))
-  fig.suptitle('Megatron-1T training on 4096 H100 80 GiB GPUs with an\n '
+  fig.suptitle('Megatron-1T training on 4096 80 GiB GPUs with an\n '
                'infinite secondary memory available for tensor offloading')
 
   tps = [1, 2, 4, 8, 16, 32]
   pps = [1, 2, 4, 8, 16, 32]
 
-  # (a) Time and mem
-  time = np.zeros((len(tps), len(pps)), dtype="float")
+  # (a) Rate and mem
+  rate = np.zeros((len(tps), len(pps)), dtype="float")
   mem = np.zeros((len(tps), len(pps)), dtype="float")
   for tp in tps:
     for pp in pps:
@@ -44,21 +50,21 @@ def main(args):
 
       # Handles the result
       if best.shape[0] == 0:
-        time[tps.index(tp)][pps.index(pp)] = float('inf')
+        rate[tps.index(tp)][pps.index(pp)] = 0
         mem[tps.index(tp)][pps.index(pp)] = float('inf')
       else:
-        batch_time = best.iloc[0]['total_time']
+        sample_rate = best.iloc[0]['sample_rate']
         used_mem = best.iloc[0]['proc_mem_tier1_cap_req']
-        time[tps.index(tp)][pps.index(pp)] = batch_time
+        rate[tps.index(tp)][pps.index(pp)] = sample_rate
         mem[tps.index(tp)][pps.index(pp)] = used_mem
-  vmin = np.min(time)
-  vmax = np.max(time)
-  print(f'Time vmin={vmin} vmax={vmax}')
+  vmin = np.min(rate)
+  vmax = np.max(rate)
+  print(f'Sample rate vmin={vmin} vmax={vmax}')
 
-  # Format the colors based on time
-  colors = copy.deepcopy(time)
+  # Format the colors based on rate
+  colors = copy.deepcopy(rate)
   colors[np.isinf(colors)] = vmax
-  im = ax[0][0].imshow(colors, cmap=tc.tol_cmap('sunset'), vmin=vmin,
+  im = ax[0][0].imshow(colors, cmap=tc.tol_cmap('sunset').reversed(), vmin=vmin,
                        vmax=vmax, aspect=0.75, origin='lower')
 
   # Show all ticks and label them with the respective list entries
@@ -74,10 +80,10 @@ def main(args):
   # Loop over data dimensions and create text annotations.
   for t in range(len(tps)):
     for p in range(len(pps)):
-      if np.isinf(time[t, p]):
+      if rate[t, p] == 0:
         result = '—'
       else:
-        result = calculon.util.human_format(time[t, p], precision=1)
+        result = calculon.util.human_format(rate[t, p], precision=1)
         result += '\n'
         result += calculon.util.human_format(mem[t, p], v_type='base2',
                                              precision=0)
@@ -85,11 +91,11 @@ def main(args):
                            color='k', size=8)
 
   ax[0][0].spines[:].set_visible(False)
-  ax[0][0].set_xticks(np.arange(time.shape[1]+1)-.5, minor=True)
+  ax[0][0].set_xticks(np.arange(rate.shape[1]+1)-.5, minor=True)
   ax[0][0].set_yticks(np.arange(mem.shape[0]+1)-.5, minor=True)
   ax[0][0].grid(which='minor', color='w', linestyle='-', linewidth=2)
   ax[0][0].tick_params(which='minor', bottom=False, left=False)
-  ax[0][0].set_title('(a) Batch time and HBM usage')
+  ax[0][0].set_title('(a) Sample rate and HBM usage')
   ax[0][0].set_ylabel('A100', fontsize=16)
 
   # (b) Full bandwidth requirements
@@ -121,7 +127,7 @@ def main(args):
   vmax = np.max(mem2_bw)
   print(f'Mem2 BW vmin={vmin} vmax={vmax}')
 
-  # Format the colors based on time
+  # Format the colors based on BW
   colors = copy.deepcopy(mem2_bw)
   colors[np.isinf(colors)] = vmax
   im = ax[0][1].imshow(colors, cmap=tc.tol_cmap('sunset'), vmin=vmin,
@@ -151,8 +157,8 @@ def main(args):
                            color='k', size=8)
 
   ax[0][1].spines[:].set_visible(False)
-  ax[0][1].set_xticks(np.arange(time.shape[1]+1)-.5, minor=True)
-  ax[0][1].set_yticks(np.arange(mem.shape[0]+1)-.5, minor=True)
+  ax[0][1].set_xticks(np.arange(mem2_bw.shape[1]+1)-.5, minor=True)
+  ax[0][1].set_yticks(np.arange(mem2_cap.shape[0]+1)-.5, minor=True)
   ax[0][1].grid(which='minor', color='w', linestyle='-', linewidth=2)
   ax[0][1].tick_params(which='minor', bottom=False, left=False)
   ax[0][1].set_title('(b) Offloading bandwidth and usage')
@@ -161,9 +167,15 @@ def main(args):
   del df
   df = pandas.read_csv(args.h100_input)
   print(f'Full data has {df.shape[0]} rows')
+  df = df[
+    (df['tensor_par_net'] == 0) &
+    ((df['pipeline_par_net'] == 1) | (df['pipeline_par'] == 1)) &
+    ((df['data_par_net'] == 1) | (df['data_par'] == 1))
+  ]
+  print(f'Filtered data has {df.shape[0]} rows')
 
-  # (a) Time and mem
-  time = np.zeros((len(tps), len(pps)), dtype="float")
+  # (a) Rate and mem
+  rate = np.zeros((len(tps), len(pps)), dtype="float")
   mem = np.zeros((len(tps), len(pps)), dtype="float")
   for tp in tps:
     for pp in pps:
@@ -180,21 +192,21 @@ def main(args):
 
       # Handles the result
       if best.shape[0] == 0:
-        time[tps.index(tp)][pps.index(pp)] = float('inf')
+        rate[tps.index(tp)][pps.index(pp)] = 0
         mem[tps.index(tp)][pps.index(pp)] = float('inf')
       else:
-        batch_time = best.iloc[0]['total_time']
+        sample_rate = best.iloc[0]['sample_rate']
         used_mem = best.iloc[0]['proc_mem_tier1_cap_req']
-        time[tps.index(tp)][pps.index(pp)] = batch_time
+        rate[tps.index(tp)][pps.index(pp)] = sample_rate
         mem[tps.index(tp)][pps.index(pp)] = used_mem
-  vmin = np.min(time)
-  vmax = np.max(time)
-  print(f'Time vmin={vmin} vmax={vmax}')
+  vmin = np.min(rate)
+  vmax = np.max(rate)
+  print(f'Sample rate vmin={vmin} vmax={vmax}')
 
-  # Format the colors based on time
-  colors = copy.deepcopy(time)
+  # Format the colors based on rate
+  colors = copy.deepcopy(rate)
   colors[np.isinf(colors)] = vmax
-  im = ax[1][0].imshow(colors, cmap=tc.tol_cmap('sunset'), vmin=vmin,
+  im = ax[1][0].imshow(colors, cmap=tc.tol_cmap('sunset').reversed(), vmin=vmin,
                        vmax=vmax, aspect=0.75, origin='lower')
 
   # Show all ticks and label them with the respective list entries
@@ -210,10 +222,10 @@ def main(args):
   # Loop over data dimensions and create text annotations.
   for t in range(len(tps)):
     for p in range(len(pps)):
-      if np.isinf(time[t, p]):
+      if rate[t, p] == 0:
         result = '—'
       else:
-        result = calculon.util.human_format(time[t, p], precision=1)
+        result = calculon.util.human_format(rate[t, p], precision=1)
         result += '\n'
         result += calculon.util.human_format(mem[t, p], v_type='base2',
                                              precision=0)
@@ -221,11 +233,11 @@ def main(args):
                            color='k', size=8)
 
   ax[1][0].spines[:].set_visible(False)
-  ax[1][0].set_xticks(np.arange(time.shape[1]+1)-.5, minor=True)
+  ax[1][0].set_xticks(np.arange(rate.shape[1]+1)-.5, minor=True)
   ax[1][0].set_yticks(np.arange(mem.shape[0]+1)-.5, minor=True)
   ax[1][0].grid(which='minor', color='w', linestyle='-', linewidth=2)
   ax[1][0].tick_params(which='minor', bottom=False, left=False)
-  ax[1][0].set_title('(c) Batch time and HBM usage')
+  ax[1][0].set_title('(c) Sample rate and HBM usage')
   ax[1][0].set_ylabel('H100', fontsize=16)
 
   # (b) Full bandwidth requirements
@@ -257,7 +269,7 @@ def main(args):
   vmax = np.max(mem2_bw)
   print(f'Mem2 BW vmin={vmin} vmax={vmax}')
 
-  # Format the colors based on time
+  # Format the colors based on BW
   colors = copy.deepcopy(mem2_bw)
   colors[np.isinf(colors)] = vmax
   im = ax[1][1].imshow(colors, cmap=tc.tol_cmap('sunset'), vmin=vmin,
@@ -287,8 +299,8 @@ def main(args):
                            color='k', size=8)
 
   ax[1][1].spines[:].set_visible(False)
-  ax[1][1].set_xticks(np.arange(time.shape[1]+1)-.5, minor=True)
-  ax[1][1].set_yticks(np.arange(mem.shape[0]+1)-.5, minor=True)
+  ax[1][1].set_xticks(np.arange(mem2_bw.shape[1]+1)-.5, minor=True)
+  ax[1][1].set_yticks(np.arange(mem2_cap.shape[0]+1)-.5, minor=True)
   ax[1][1].grid(which='minor', color='w', linestyle='-', linewidth=2)
   ax[1][1].tick_params(which='minor', bottom=False, left=False)
   ax[1][1].set_title('(d) Offloading bandwidth and usage')
