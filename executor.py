@@ -10,13 +10,13 @@ class Executor():
   same file system.
   """
 
-  SupportedModes = ['local_full', 'local_8', 'nvlsf']
+  SupportedModes = ['local', 'local_8', 'nvlsf']
 
   def __init__(self, calc_dir, execution_mode, failure_mode = 'passive_fail'):
     self._calc_dir = calc_dir
     self._mode = execution_mode
     if self._mode.startswith('local'):
-      if self._mode == 'local_full':
+      if self._mode == 'local':
         self._parallelExecutionCores = psutil.cpu_count(logical=False)
         self._singleExecutionSlots = 1
         self._parallelExecutionSlots = psutil.cpu_count(logical=False)
