@@ -2,7 +2,6 @@
 
 import argparse
 import calculon
-import copy
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -14,8 +13,11 @@ import tol_colors as tc
 
 
 def main(args):
-  # A100
-  df = pandas.read_csv(args.a100_input)
+  GiB = 1024 ** 3
+
+  # H100 infinite mem2
+  print(f'Reading {args.h100_inf_input}')
+  df = pandas.read_csv(args.h100_inf_input)
   print(f'Full data has {df.shape[0]} rows')
   df = df[
     (df['tensor_par_net'] == 0) &
@@ -26,8 +28,8 @@ def main(args):
 
   # Sets up the plot structure
   fig, ax = plt.subplots(2, 2, figsize=(7.5, 7))
-  fig.suptitle('Megatron-1T training on 4096 80 GiB GPUs with an\n '
-               'infinite secondary memory available for tensor offloading')
+  fig.suptitle('Megatron-1T training on 4096 H100 80 GiB GPUs with a\n '
+               'secondary memory available for tensor offloading')
 
   tps = [1, 2, 4, 8, 16, 32]
   pps = [1, 2, 4, 8, 16, 32]
@@ -50,20 +52,19 @@ def main(args):
 
       # Handles the result
       if best.shape[0] == 0:
-        rate[tps.index(tp)][pps.index(pp)] = 0
+        rate[tps.index(tp)][pps.index(pp)] = 0.0
         mem[tps.index(tp)][pps.index(pp)] = float('inf')
       else:
         sample_rate = best.iloc[0]['sample_rate']
         used_mem = best.iloc[0]['proc_mem_tier1_cap_req']
         rate[tps.index(tp)][pps.index(pp)] = sample_rate
         mem[tps.index(tp)][pps.index(pp)] = used_mem
-  vmin = np.min(rate)
-  vmax = np.max(rate)
-  print(f'Sample rate vmin={vmin} vmax={vmax}')
 
   # Format the colors based on rate
-  colors = copy.deepcopy(rate)
-  colors[np.isinf(colors)] = vmax
+  vmin = np.min(rate[np.nonzero(rate)])
+  vmax = np.max(rate)
+  colors = rate.copy()
+  print(colors)
   im = ax[0][0].imshow(colors, cmap=tc.tol_cmap('sunset').reversed(), vmin=vmin,
                        vmax=vmax, aspect=0.75, origin='lower')
 
@@ -80,7 +81,7 @@ def main(args):
   # Loop over data dimensions and create text annotations.
   for t in range(len(tps)):
     for p in range(len(pps)):
-      if rate[t, p] == 0:
+      if rate[t, p] == 0.0:
         result = '—'
       else:
         result = calculon.util.human_format(rate[t, p], precision=1)
@@ -96,7 +97,7 @@ def main(args):
   ax[0][0].grid(which='minor', color='w', linestyle='-', linewidth=2)
   ax[0][0].tick_params(which='minor', bottom=False, left=False)
   ax[0][0].set_title('(a) Sample rate and HBM usage')
-  ax[0][0].set_ylabel('A100', fontsize=16)
+  ax[0][0].set_ylabel('Infinite', fontsize=16)
 
   # (b) Full bandwidth requirements
   mem2_bw = np.zeros((len(tps), len(pps)), dtype="float")
@@ -117,18 +118,17 @@ def main(args):
       # Handles the result
       if best.shape[0] == 0:
         mem2_bw[tps.index(tp)][pps.index(pp)] = float('inf')
+        mem2_cap[tps.index(tp)][pps.index(pp)] = float('inf')
       else:
         req_bw = best.iloc[0]['offload_mem_bw_req']
         mem2_bw[tps.index(tp)][pps.index(pp)] = req_bw
         used_mem2 = best.iloc[0]['proc_mem_tier2_cap_req']
         mem2_cap[tps.index(tp)][pps.index(pp)] = used_mem2
 
-  vmin = np.min(mem2_bw)
-  vmax = np.max(mem2_bw)
-  print(f'Mem2 BW vmin={vmin} vmax={vmax}')
-
-  # Format the colors based on BW
-  colors = copy.deepcopy(mem2_bw)
+  # Format the colors based on capacity
+  vmin = 0
+  vmax = 512 * GiB
+  colors = mem2_cap.copy()
   colors[np.isinf(colors)] = vmax
   im = ax[0][1].imshow(colors, cmap=tc.tol_cmap('sunset'), vmin=vmin,
                        vmax=vmax, aspect=0.75, origin='lower')
@@ -163,9 +163,10 @@ def main(args):
   ax[0][1].tick_params(which='minor', bottom=False, left=False)
   ax[0][1].set_title('(b) Offloading bandwidth and usage')
 
-  # H100
+  # H100 real mem2
   del df
-  df = pandas.read_csv(args.h100_input)
+  print(f'Reading {args.h100_real_input}')
+  df = pandas.read_csv(args.h100_real_input)
   print(f'Full data has {df.shape[0]} rows')
   df = df[
     (df['tensor_par_net'] == 0) &
@@ -174,7 +175,7 @@ def main(args):
   ]
   print(f'Filtered data has {df.shape[0]} rows')
 
-  # (a) Rate and mem
+  # (c) Rate and mem
   rate = np.zeros((len(tps), len(pps)), dtype="float")
   mem = np.zeros((len(tps), len(pps)), dtype="float")
   for tp in tps:
@@ -192,20 +193,18 @@ def main(args):
 
       # Handles the result
       if best.shape[0] == 0:
-        rate[tps.index(tp)][pps.index(pp)] = 0
+        rate[tps.index(tp)][pps.index(pp)] = 0.0
         mem[tps.index(tp)][pps.index(pp)] = float('inf')
       else:
         sample_rate = best.iloc[0]['sample_rate']
         used_mem = best.iloc[0]['proc_mem_tier1_cap_req']
         rate[tps.index(tp)][pps.index(pp)] = sample_rate
         mem[tps.index(tp)][pps.index(pp)] = used_mem
-  vmin = np.min(rate)
-  vmax = np.max(rate)
-  print(f'Sample rate vmin={vmin} vmax={vmax}')
 
   # Format the colors based on rate
-  colors = copy.deepcopy(rate)
-  colors[np.isinf(colors)] = vmax
+  vmin = np.min(rate[np.nonzero(rate)])
+  vmax = np.max(rate)
+  colors = rate.copy()
   im = ax[1][0].imshow(colors, cmap=tc.tol_cmap('sunset').reversed(), vmin=vmin,
                        vmax=vmax, aspect=0.75, origin='lower')
 
@@ -238,9 +237,9 @@ def main(args):
   ax[1][0].grid(which='minor', color='w', linestyle='-', linewidth=2)
   ax[1][0].tick_params(which='minor', bottom=False, left=False)
   ax[1][0].set_title('(c) Sample rate and HBM usage')
-  ax[1][0].set_ylabel('H100', fontsize=16)
+  ax[1][0].set_ylabel('512 GiB @ 100 GB/s', fontsize=16)
 
-  # (b) Full bandwidth requirements
+  # (d) Full bandwidth requirements
   mem2_bw = np.zeros((len(tps), len(pps)), dtype="float")
   mem2_cap = np.zeros((len(tps), len(pps)), dtype="float")
   for tp in tps:
@@ -259,18 +258,17 @@ def main(args):
       # Handles the result
       if best.shape[0] == 0:
         mem2_bw[tps.index(tp)][pps.index(pp)] = float('inf')
+        mem2_cap[tps.index(tp)][pps.index(pp)] = float('inf')
       else:
         req_bw = best.iloc[0]['offload_mem_bw_req']
-        mem2_bw[tps.index(tp)][pps.index(pp)] = req_bw
+        mem2_bw[tps.index(tp)][pps.index(pp)] = min(100e9, req_bw)
         used_mem2 = best.iloc[0]['proc_mem_tier2_cap_req']
         mem2_cap[tps.index(tp)][pps.index(pp)] = used_mem2
 
-  vmin = np.min(mem2_bw)
-  vmax = np.max(mem2_bw)
-  print(f'Mem2 BW vmin={vmin} vmax={vmax}')
-
-  # Format the colors based on BW
-  colors = copy.deepcopy(mem2_bw)
+  # Format the colors based on capacity
+  vmin = 0
+  vmax = 512 * GiB
+  colors = mem2_cap.copy()
   colors[np.isinf(colors)] = vmax
   im = ax[1][1].imshow(colors, cmap=tc.tol_cmap('sunset'), vmin=vmin,
                        vmax=vmax, aspect=0.75, origin='lower')
@@ -312,7 +310,7 @@ def main(args):
 
 if __name__ == '__main__':
   ap = argparse.ArgumentParser()
-  ap.add_argument('a100_input', help='A100 input file')
-  ap.add_argument('h100_input', help='H100 input file')
+  ap.add_argument('h100_inf_input', help='H100 infinite mem2 input file')
+  ap.add_argument('h100_real_input', help='H100 real mem2 input file')
   ap.add_argument('output', help='output file')
   sys.exit(main(ap.parse_args()))

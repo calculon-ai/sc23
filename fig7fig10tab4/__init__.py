@@ -1,4 +1,5 @@
 import calculon
+import copy
 import os
 import sys
 import taskrun
@@ -14,31 +15,39 @@ class Fig7Fig10Tab4():
     os.makedirs(self.output, exist_ok=True)
 
     # Creates the system file task
-    a100_80g_nvl8 = os.path.join(os.environ['CALC'], 'systems', 'a100_80g.json')
-    h100_80g_nvl8 = os.path.join(os.environ['CALC'], 'systems', 'h100_80g_nvl8.json')
-    a100_80g_nvl4k_off = os.path.join(self.output, 'a100_80g_nvl4k_off.json')
-    h100_80g_nvl4k_off = os.path.join(self.output, 'h100_80g_nvl4k_off.json')
+    h100_80g_nvl8 = \
+      os.path.join(os.environ['CALC'], 'systems', 'h100_80g_nvl8.json')
+    h100_80g_nvl4k_infinite_off = \
+      os.path.join(self.output, 'h100_80g_nvl4k_infinite_off.json')
+    h100_80g_nvl4k_real_off = \
+      os.path.join(self.output, 'h100_80g_nvl4k_real_off.json')
     def createSystemFiles():
-      for src, dst in [(a100_80g_nvl8, a100_80g_nvl4k_off),
-                       (h100_80g_nvl8, h100_80g_nvl4k_off)]:
-        sys = calculon.read_json_file(src)
-        sys['mem2']['GiB'] = 99999999
-        sys['mem2']['GBps'] = 99999999
-        sys['networks'][0]['size'] = 4096
-        calculon.write_json_file(sys, dst)
+      base = calculon.read_json_file(h100_80g_nvl8)
+      # Mythical offloading system
+      inf = copy.deepcopy(base)
+      inf['mem2']['GiB'] = 99999999
+      inf['mem2']['GBps'] = 99999999
+      inf['networks'][0]['size'] = 4096
+      calculon.write_json_file(inf, h100_80g_nvl4k_infinite_off)
+      # Real offloading system
+      real = copy.deepcopy(base)
+      real['mem2']['GiB'] = 512
+      real['mem2']['GBps'] = 100
+      real['networks'][0]['size'] = 4096
+      calculon.write_json_file(real, h100_80g_nvl4k_real_off)
+
     sys_task = executor.createFunctionTask('fig7fig10tab4-sys-file',
                                            createSystemFiles)
     sys_task.add_condition(taskrun.FileModificationCondition(
-      [a100_80g_nvl8, h100_80g_nvl8],
-      [a100_80g_nvl4k_off, h100_80g_nvl4k_off]))
+      [h100_80g_nvl8], [h100_80g_nvl4k_infinite_off, h100_80g_nvl4k_real_off]))
 
     # Creates the all executions task
     megatron_1T = os.path.join(os.environ['CALC'], 'models', 'megatron-1T.json')
     run_tasks = {}
     run_outputs = {}
-    for gpu, sys_file in [('a100', a100_80g_nvl4k_off),
-                          ('h100', h100_80g_nvl4k_off)]:
-      run_name = f'fig7fig10tab4-all-executions-{gpu}'
+    for off, sys_file in [('inf', h100_80g_nvl4k_infinite_off),
+                          ('real', h100_80g_nvl4k_real_off)]:
+      run_name = f'fig7fig10tab4-all-executions-{off}'
       run_log = os.path.join(self.output, f'{run_name}.log')
       run_output = os.path.join(self.output, f'{run_name}.csv.gz')
       run_task = executor.createAllExecutionsTask(
@@ -47,8 +56,8 @@ class Fig7Fig10Tab4():
       run_task.add_condition(taskrun.FileModificationCondition(
         [sys_file, megatron_1T], [run_output]))
       run_task.add_dependency(sys_task)
-      run_tasks[gpu] = run_task
-      run_outputs[gpu] = run_output
+      run_tasks[off] = run_task
+      run_outputs[off] = run_output
 
     # Creates the plotting task for fig7
     plotter = os.path.join(H, 'fig7.py')
@@ -71,10 +80,10 @@ class Fig7Fig10Tab4():
     fig10_file = os.path.join(self.output, 'fig10.png')
     tab4_file = os.path.join(self.output, 'tab4.csv')
     fig10tab4_name = 'fig7fig10tab4_fig10tab4'
-    fig10tab4_cmd = f'{plotter} {run_outputs["h100"]} {fig10_file} {tab4_file}'
+    fig10tab4_cmd = f'{plotter} {run_outputs["real"]} {fig10_file} {tab4_file}'
     fig10tab4_log = os.path.join(self.output, f'{fig10tab4_name}.log')
     fig10tab4_task = executor.createTask('MiscProcess', fig10tab4_name,
                                          fig10tab4_cmd, fig10tab4_log)
     fig10tab4_task.add_condition(taskrun.FileModificationCondition(
-      [run_outputs['h100']], [fig10_file, tab4_file]))
-    fig10tab4_task.add_dependency(run_tasks['h100'])
+      [run_outputs['real']], [fig10_file, tab4_file]))
+    fig10tab4_task.add_dependency(run_tasks['real'])
