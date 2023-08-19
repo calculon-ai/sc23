@@ -25,7 +25,7 @@ else
     echo "Calculon already cloned :)"
 fi
 
-COMMIT=84dea66
+COMMIT=76256af
 echo "Checking out commit ${COMMIT}"
 cd ${CALC_DIR}
 git checkout ${COMMIT}
