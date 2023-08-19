@@ -14,9 +14,10 @@ class Fig5():
     os.makedirs(self.output, exist_ok=True)
 
     for datatype, system in [
-        ('float16', 'a100_80g'),
+        #('float16', 'a100_80g'),
         ('float16', 'h100_80g_nvl8'),
-        ('float8', 'h100_80g_nvl8')]:
+        #('float8', 'h100_80g_nvl8')
+    ]:
       # Creates the all executions task
       sys_file = os.path.join(os.environ['CALC'], 'systems', f'{system}.json')
       gpt3_175B = os.path.join(os.environ['CALC'], 'models', 'gpt3-175B.json')
