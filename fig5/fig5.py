@@ -24,23 +24,31 @@ def main(args):
   print(f'first={srs[0]} last={srs[-1]}')
 
   fig, ax = plt.subplots(1, 2, figsize=(7.5, 4))
-  fig.suptitle(f'{num:,} execution strategies for GPT3 175B on 4096 GPUs',
-               fontsize=14)
+  fig.suptitle(f'{num:,} execution strategies\n'
+               'for GPT3 175B on 4096 GPUs', fontsize=18)
 
   ax[0].hist(srs, bins=10, edgecolor='black')
-  ax[0].set_xlabel('Sample rate')
-  ax[0].set_ylabel('Occurances')
-  ax[0].set_title('(a) Sample rate distribution')
+  ax[0].set_xlabel('Sample rate', fontsize=12)
+  ax[0].set_xticks([0, 200, 400, 600, 800, 1000])
+  ax[0].set_xticklabels(['0', '200', '400', '600', '800', '1000'], fontsize=11)
+  ax[0].set_ylabel('Occurances', fontsize=12)
+  ax[0].set_yticks([0, 300000, 600000])
+  ax[0].set_yticklabels(['0', '300k', '600k'], fontsize=11)
+  ax[0].set_title('(a) Sample rate distribution', fontsize=12)
 
-  top_n = 1000
+  top_n = 100
   top_srs = srs[-top_n:]
   n = len(top_srs)
   cdf = np.arange(1, n+1) / n
 
   ax[1].plot(top_srs, cdf, marker='.', linestyle='none')
-  ax[1].set_xlabel('Sample rate')
-  ax[1].set_ylabel('CDF')
-  ax[1].set_title(f'(b) Top-{top_n} sample rate CDF')
+  ax[1].set_xlabel('Sample rate', fontsize=12)
+  ax[1].set_xticks([930, 970, 1010, 1050, 1090])
+  ax[1].set_xticklabels(['930', '970', '1010', '1050', '1090'], fontsize=11)
+  ax[1].set_ylabel('CDF', fontsize=12)
+  ax[1].set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
+  ax[1].set_yticklabels(['0', '0.2', '0.4', '0.6', '0.8', '1.0'], fontsize=11)
+  ax[1].set_title(f'(b) Top-{top_n} sample rate CDF', fontsize=12)
 
   fig.tight_layout()
   fig.savefig(args.output, dpi=300, transparent=False)

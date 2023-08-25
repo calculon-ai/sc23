@@ -40,12 +40,12 @@ def main(args):
         sys_name = getSystemName(nvl, mem2, g2c)
 
         # Creates plot structure
-        fig, ax = plt.subplots(1, 3, figsize=(8.5, 3.5))
+        fig, ax = plt.subplots(1, 3, figsize=(7.5, 3.5))
         if g2c == 0:
           title = 'LLM training scalability (no offloading)'
         else:
           title = f'LLM training scalability ({g2c} GB/s offloading)'
-        fig.suptitle(title, fontsize=20, y=1.04)
+        fig.suptitle(title, fontsize=18, y=1.04)
 
         for ai, app in enumerate(apps):
           perfs = []
@@ -75,8 +75,8 @@ def main(args):
                       color='k')
 
           # Scatter plot of relative performance
-          ax[ai].scatter(sizes, perfs / max_point, sizes=[5]*len(sizes),
-                         marker='.', color=colors[app])
+          ax[ai].scatter(sizes, perfs / max_point, sizes=[25]*len(sizes),
+                         marker='1', linewidths=0.7, color=colors[app])
 
           # Best performance accumulation
           ax[ai].plot(sizes, bests / max_point, linewidth=1, color='k')
@@ -90,16 +90,16 @@ def main(args):
           ax[ai].grid(True)
 
         # Labels and legend
-        ax[0].set_ylabel('Relative scaling', fontsize=16)
-        ax[1].set_xlabel('System size', fontsize=16)
+        ax[0].set_ylabel('Relative scaling', fontsize=12)
+        ax[1].set_xlabel('System size', fontsize=12)
         ax[1].plot([], [], '--', color='k', label='Perfect scaling')
         ax[1].plot([], [], '-', color='k', label='Best performance')
         ax[1].legend(loc='lower center', bbox_to_anchor=(0.4, -0.46),
-                     fancybox=True, shadow=True, ncol=3, fontsize=14)
+                     fancybox=True, shadow=True, ncol=3, fontsize=12)
 
         plt.subplots_adjust(wspace=0.25)
         fi = 6 if g2c == 0 else 8
-        plotfile = os.path.join(args.directory, f'fig{fi}.png')
+        plotfile = os.path.join(args.directory, f'fig{fi}.pdf')
         print(f'Saving {plotfile}')
         fig.savefig(plotfile, dpi=300, transparent=False, bbox_inches='tight')
 
@@ -115,11 +115,11 @@ def main(args):
 
         # Creates plot structure
         fig, ax = plt.subplots(
-          6, 1, figsize=(8, 6), sharex=True,
+          6, 1, figsize=(7.5, 6), sharex=True,
           gridspec_kw={'height_ratios': [1, 4, 1, 4, 1, 4]})
         title = (f'Relative performance improvement with offloading\n'
                  f'({mem2} GiB @ {g2c} GB/s)')
-        fig.suptitle(title, fontsize=20, y=1)
+        fig.suptitle(title, fontsize=18, y=1)
 
         for ai, app in enumerate(apps):
           perfs_non = []
@@ -206,9 +206,9 @@ def main(args):
         # Labeling
         plt.setp(ax[5].get_xticklabels(), rotation=45, ha="right",
                  rotation_mode="anchor",  fontsize=11)
-        ax[5].set_xlabel('System size', fontsize=16)
-        ax[3].set_ylabel('Relative speedup, %', fontsize=16)
-        plotfile = os.path.join(args.directory, f'fig9.png')
+        ax[5].set_xlabel('System size', fontsize=12)
+        ax[3].set_ylabel('Relative speedup, %', fontsize=12)
+        plotfile = os.path.join(args.directory, f'fig9.pdf')
         print(f'Saving {plotfile}')
         fig.savefig(plotfile, dpi=300, transparent=False, bbox_inches="tight")
 

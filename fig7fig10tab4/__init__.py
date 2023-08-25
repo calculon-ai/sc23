@@ -62,7 +62,7 @@ class Fig7Fig10Tab4():
     # Creates the plotting task for fig7
     plotter = os.path.join(H, 'fig7.py')
     assert os.path.exists(plotter)
-    fig7_file = os.path.join(self.output, 'fig7.png')
+    fig7_file = os.path.join(self.output, 'fig7.pdf')
     fig7_name = 'fig7fig10tab4_fig7'
     all_run_outputs = ' '.join(list(run_outputs.values()))
     fig7_cmd = f'{plotter} {all_run_outputs} {fig7_file}'
@@ -77,7 +77,7 @@ class Fig7Fig10Tab4():
     # Creates the plotting task for fig10 and table creator for tab4
     plotter = os.path.join(H, 'fig10tab4.py')
     assert os.path.exists(plotter)
-    fig10_file = os.path.join(self.output, 'fig10.png')
+    fig10_file = os.path.join(self.output, 'fig10.pdf')
     tab4_file = os.path.join(self.output, 'tab4.csv')
     fig10tab4_name = 'fig7fig10tab4_fig10tab4'
     fig10tab4_cmd = f'{plotter} {run_outputs["real"]} {fig10_file} {tab4_file}'

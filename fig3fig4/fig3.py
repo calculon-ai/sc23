@@ -63,12 +63,12 @@ def main(args):
 
   # 2x3 subplots
   fig, ax = plt.subplots(2, 3, figsize=(14, 8),
-                         gridspec_kw={'width_ratios': [1, 1.5, 1]})
+                         gridspec_kw={'width_ratios': [1, 1.6, 1]})
   fig.suptitle('Megatron-1T single batch training on 4096 A100 GPUs '
-               'with various parallelism strategies', fontsize=20)
+               'with various parallelism strategies', fontsize=18, y=0.97)
   bar_width = 0.5
   time_min = 0
-  time_max = 90
+  time_max = 100
   mem_min = 0
   mem_max = 300
 
@@ -138,9 +138,11 @@ def main(args):
                                                tp_time, pp_time)],
                    label='DP comm', color=time_colors[7])
 
-    ax[0][idx].set_ylabel('Time, s')
+    plt.setp(ax[0][idx].get_xticklabels(), fontsize=11)
+    plt.setp(ax[0][idx].get_yticklabels(), fontsize=11)
+    ax[0][idx].set_ylabel('Time, s', fontsize=12)
     ax[0][idx].set_ylim([time_min, time_max])
-    ax[0][idx].set_title(f'{title} batch time')
+    ax[0][idx].set_title(f'{title} batch time', fontsize=12)
 
     # Mem plot
     weight = [ds[t].iloc[0]['weight_space']/1024**3 for t in keys]
@@ -155,29 +157,31 @@ def main(args):
                  label='Activation', color=mem_colors[1])
     ax[1][idx].bar(labels, weight_grad, bar_width,
                  bottom=[sum(x) for x in zip(weight, act_space)],
-                 label='Weight gradients', color=mem_colors[2])
+                 label='Weight\ngradients', color=mem_colors[2])
     ax[1][idx].bar(labels, act_grad, bar_width,
                  bottom=[sum(x) for x in zip(weight, act_space, weight_grad)],
-                 label='Activation gradients', color=mem_colors[3])
+                 label='Activation\ngradients', color=mem_colors[3])
     ax[1][idx].bar(labels, optim_space, bar_width,
                  bottom=[sum(x) for x in zip(weight, act_space, weight_grad,
                                              act_grad)],
                  label='Optimizer space', color=mem_colors[4])
 
-    ax[1][idx].set_ylabel('Size, GB')
+    plt.setp(ax[1][idx].get_xticklabels(), fontsize=11)
+    plt.setp(ax[1][idx].get_yticklabels(), fontsize=11)
+    ax[1][idx].set_ylabel('Size, GB', fontsize=12)
     ax[1][idx].set_ylim([mem_min, mem_max])
-    ax[1][idx].set_title(f'{title} memory consumption')
+    ax[1][idx].set_title(f'{title} memory consumption', fontsize=12)
 
   # Time legend
   ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5, 1.02),
-                  fancybox=True, shadow=True, ncol=3)
+                  fancybox=True, shadow=True, ncol=2, fontsize=12)
 
   # Memory consumption legend
   ax[1][1].legend(loc='upper center', bbox_to_anchor=(0.5, 1.02),
-                  fancybox=True, shadow=True, ncol=2)
+                  fancybox=True, shadow=True, ncol=2, fontsize=12)
 
   # Create plotfile
-  fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+  fig.tight_layout(rect=[0, 0.01, 1, 0.99])
   fig.savefig(args.output, dpi=300, transparent=False)
 
 

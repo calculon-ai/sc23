@@ -90,7 +90,7 @@ class Fig6Fig8Fig9():
     plotter = os.path.join(H, 'figs.py')
     assert os.path.exists(plotter)
     fig_files = []
-    fig_files = [os.path.join(self.output, f'fig{fig}.png')
+    fig_files = [os.path.join(self.output, f'fig{fig}.pdf')
                  for fig in [6, 8, 9]]
     fig_name = f'{run_name}_figs'
     fig_cmd = f'{plotter} {self.output}'

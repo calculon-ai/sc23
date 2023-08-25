@@ -43,7 +43,7 @@ class Fig3Fig4():
     for fig in [3, 4]:
       plotter = os.path.join(H, f'fig{fig}.py')
       assert os.path.exists(plotter)
-      fig_file = os.path.join(self.output, f'fig{fig}.png')
+      fig_file = os.path.join(self.output, f'fig{fig}.pdf')
       fig_name = f'{run_name}_fig{fig}'
       fig_cmd = f'{plotter} {run_output} {fig_file}'
       fig_log = os.path.join(self.output, f'{fig_name}.log')

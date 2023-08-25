@@ -51,7 +51,7 @@ def main(args):
     ((df['data_par_net'] == 1) | (df['data_par'] == 1)) &
     (df['fused_activation'] == False) &
     (df['attention_type'] == 'multihead') &
-    (df['seq_par_ag_redo'] == False) &
+    (df['seq_par_ag_redo'] == True) &
     (df['tensor_par_overlap'] == 'none') &
     (df['data_par_overlap'] == False) &
     (df['optimizer_sharding'] == False) &
@@ -87,7 +87,8 @@ def main(args):
 
   # Figure 10
   fig, ax = plt.subplots(1, 2, figsize=(8, 4))
-  fig.suptitle("Calculon results compared to State-of-the-Art", y=1.01)
+  fig.suptitle("Calculon results compared to State-of-the-Art",
+               fontsize=18, y=1.01)
   width = 0.5
   tmin=0
   tmax=26
@@ -169,13 +170,13 @@ def main(args):
             bottom=[sum(x) for x in zip(fw_time, bw_time, optim_time, bubble_time, recomp_time, tp_time, pp_time)],
             label='DP comm', color=colors[7])
 
-  ax[0].set_ylabel('Time, s')
+  ax[0].set_ylabel('Time, s', fontsize=12)
   ax[0].set_ylim([tmin, tmax])
   plt.setp(ax[0].get_xticklabels(), rotation=45, ha="right",
-           rotation_mode="anchor")
+           rotation_mode="anchor", fontsize=11)
   ax[0].legend(loc='lower center', bbox_to_anchor=(0.37, -0.65),
-               fancybox=True, shadow=True, ncol=2, fontsize=11)
-  ax[0].set_title('Batch time')
+               fancybox=True, shadow=True, ncol=2, fontsize=10)
+  ax[0].set_title('Batch time', fontsize=12)
 
   weight = [e1.iloc[0]['weight_space']/1024**3,
             e2.iloc[0]['weight_space']/1024**3,
@@ -222,20 +223,21 @@ def main(args):
             bottom=[sum(x) for x in zip(weight, act_space, weight_grad, act_grad)],
             label='Optimizer space', color=colors[4])
 
-  ax[1].set_ylabel('Size, GB')
+  ax[1].set_ylabel('Size, GB', fontsize=12)
   ax[1].set_ylim([mmin, mmax])
   plt.setp(ax[1].get_xticklabels(), rotation=45, ha="right",
-           rotation_mode="anchor")
+           rotation_mode="anchor", fontsize=11)
   ax[1].legend(loc='lower center', bbox_to_anchor=(0.45, -0.65),
-               fancybox=True, shadow=True, ncol=2, alignment='center')
-  ax[1].set_title('HBM consumption', fontsize=11)
+               fancybox=True, shadow=True, ncol=2, alignment='center',
+               fontsize=10)
+  ax[1].set_title('HBM consumption', fontsize=12)
 
   fig.savefig(args.fig10, dpi=300, transparent=False, bbox_inches="tight")
 
 
   # Create a table of information
   with open(args.tab4, 'w') as fd:
-    print('Name,time,mem,mfu,tp,pp,dp,mbs,ppint,tp_comm,redo,tpo,dpo,optshard,fused,wo,ao,oo',
+    print('Name,time,mem,mfu,tp,pp,dp,mbs,ppint,recompute,tp_comm,redo,tpo,dpo,optshard,fused,wo,ao,oo',
           file=fd)
     for name, frame in [('Baseline', e1), ('SeqPar', e2), ('SwOpts', e3),
                         ('HwOff', e4)]:
@@ -248,6 +250,7 @@ def main(args):
       print(f'{frame.iloc[0]["data_par"]},', file=fd, end='')
       print(f'{frame.iloc[0]["microbatch_size"]},', file=fd, end='')
       print(f'{frame.iloc[0]["pipeline_interleaving"]},', file=fd, end='')
+      print(f'{frame.iloc[0]["activation_recompute"]},', file=fd, end='')
       print(f'{frame.iloc[0]["tensor_par_comm_type"]},', file=fd, end='')
       print(f'{frame.iloc[0]["seq_par_ag_redo"]},', file=fd, end='')
       print(f'{frame.iloc[0]["tensor_par_overlap"]},', file=fd, end='')
