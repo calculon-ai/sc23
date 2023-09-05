@@ -79,9 +79,9 @@ def main(args):
   assert dfd.shape[0] > 0
 
   # Sets up the plot structure
-  fig, ax = plt.subplots(2, 2, figsize=(7.5, 7))
-  fig.suptitle('Megatron-1T single batch of training on 4096 A100 GPUs with '
-               'various optimizations')
+  fig, ax = plt.subplots(2, 2, figsize=(7.5, 7.7))
+  fig.suptitle('Megatron-1T single batch of training on\n'
+               '4096 A100 GPUs with various optimizations', fontsize=18, y=0.97)
   vmin = 45
   vmax = 200
   tps = [1, 2, 4, 8, 16, 32]
@@ -128,8 +128,12 @@ def main(args):
     # Format the colors based on time
     colors = copy.deepcopy(time)
     colors[np.isinf(colors)] = vmax
-    im = ax[px][py].imshow(colors, cmap=tc.tol_cmap('sunset'), vmin=vmin,
-                           vmax=vmax, aspect=0.75, origin='lower')
+    clrs = ['#4393C3', '#92C5DE', '#D1E5F0', '#F7F7F7',
+            '#FDDBC7', '#F4A582', '#D6604D']
+    my_cmap = matplotlib.colors.LinearSegmentedColormap.from_list("my_heatmap", clrs)
+    my_cmap.set_bad('#FFEE99')
+    im = ax[px][py].imshow(colors, cmap=my_cmap, vmin=vmin,
+                           vmax=vmax, aspect=0.85, origin='lower')
 
     # Show all ticks and label them with the respective list entries
     ax[px][py].set_yticks(np.arange(len(tps)))
@@ -149,19 +153,22 @@ def main(args):
         else:
           result = calculon.util.human_format(time[t, p], precision=1)
           result += '\n'
-          result += calculon.util.human_format(mem[t, p], v_type='base2',
+          tmp_str = calculon.util.human_format(mem[t, p], v_type='base2',
                                                precision=0)
+          result += ''.join(tmp_str.split(' '))
         text = ax[px][py].text(p, t, result, ha='center', va='center',
-                               color='k', size=8)
+                               color='k', size=9)
 
     ax[px][py].spines[:].set_visible(False)
     ax[px][py].set_xticks(np.arange(time.shape[1]+1)-.5, minor=True)
     ax[px][py].set_yticks(np.arange(mem.shape[0]+1)-.5, minor=True)
+    plt.setp(ax[px][py].get_xticklabels(), fontsize=11)
+    plt.setp(ax[px][py].get_yticklabels(), fontsize=11)
     ax[px][py].grid(which='minor', color='w', linestyle='-', linewidth=2)
     ax[px][py].tick_params(which='minor', bottom=False, left=False)
-    ax[px][py].set_title(title)
+    ax[px][py].set_title(title, fontsize=12)
 
-
+  #plt.subplots_adjust(hspace=0.65)
   fig.tight_layout(rect=[0, 0.03, 1, 0.98])
   fig.savefig(args.output, dpi=300, transparent=False, bbox_inches='tight')
 

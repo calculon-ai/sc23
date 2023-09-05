@@ -33,7 +33,7 @@ class Fig5():
       # Creates the plotting task
       plotter = os.path.join(H, 'fig5.py')
       assert os.path.exists(plotter)
-      plot_file = os.path.join(self.output, f'{run_name}.png')
+      plot_file = os.path.join(self.output, f'{run_name}.pdf')
       plot_name = f'{run_name}_plot'
       plot_cmd = f'{plotter} {run_output} {plot_file}'
       plot_log = os.path.join(self.output, f'{plot_name}.log')

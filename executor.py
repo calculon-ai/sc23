@@ -29,7 +29,7 @@ class Executor():
       self._tm = taskrun.standard_task_manager(
         track_cpus = True,
         max_cpus = self._parallelExecutionSlots,
-        track_memory = True,
+        track_memory = False,
         max_memory = -1,
         cleanup_files = True,
         failure_mode = failure_mode)

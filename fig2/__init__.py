@@ -34,7 +34,7 @@ class Fig2():
     # Creates the plotting task
     plotter = os.path.join(H, 'fig2.py')
     assert os.path.exists(plotter)
-    plot_file = os.path.join(self.output, 'plot.png')
+    plot_file = os.path.join(self.output, 'plot.pdf')
     plot_name = f'{calc_name}_plot'
     plot_cmd = f'{plotter} {stats_file} {plot_file}'
     plot_log = os.path.join(self.output, f'{plot_name}.log')
